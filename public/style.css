@@ -1,0 +1,6 @@
+body.p{background:#0a0e1a;color:#fff;font-family:Inter,system-ui;display:flex;min-height:100vh;align-items:center;justify-content:center}
+.card{width:min(420px,92vw);background:#101b2f;border:1px solid #263e64;border-radius:18px;padding:20px}
+input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #304e7a;background:#1d2f4a;color:#fff;margin:8px 0 14px}
+button{width:100%;padding:12px;border-radius:12px;border:none;background:#1db954;font-weight:800;cursor:pointer}
+#msg{margin-top:12px;color:#b8ceff}
+label{color:#b9d1ff;font-size:14px}

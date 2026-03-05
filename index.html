@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpotifyHub · Admin Panel (DB ready)</title>
+
+  <!-- Font Awesome 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+  
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h2>SpotifyHub</h2>
+      <span>Admin Panel</span>
+    </div>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="#" class="nav-link active" data-section="dashboard">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      <a href="#" class="nav-link" data-section="generate">
+        <i class="fas fa-plus-circle"></i> Generate Keys
+      </a>
+      <a href="#" class="nav-link" data-section="stock">
+        <i class="fas fa-boxes"></i> Manage Stock
+      </a>
+      <a href="#" class="nav-link" data-section="unbind">
+        <i class="fas fa-clock"></i> Unbind Requests
+      </a>
+      <a href="#" class="nav-link" data-section="allkeys">
+        <i class="fas fa-database"></i> All Keys
+      </a>
+    </nav>
+
+    <div class="bottom-nav">
+      <a href="#"><i class="fas fa-cog"></i> Settings</a>
+      <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content" id="mainContent"></main>
+
+  <!-- DB Setup Box -->
+  <section class="db-setup" aria-label="Database setup steps">
+    <h4><i class="fas fa-database"></i> Database setup steps</h4>
+    <ol>
+      <li>Create MySQL/PostgreSQL database: <code>spotifyhub_db</code></li>
+      <li>Run these tables:
+        <pre>
+-- keys table
+CREATE TABLE keys (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  key_code VARCHAR(50) UNIQUE,
+  status ENUM('UNUSED','BINDING','REUSABLE') DEFAULT 'UNUSED',
+  bound_email VARCHAR(255),
+  invite_link TEXT,
+  created_at DATETIME,
+  redeemed_at DATETIME
+);
+
+-- invite_links table
+CREATE TABLE invite_links (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  link TEXT,
+  status ENUM('AVAILABLE','ASSIGNED') DEFAULT 'AVAILABLE',
+  assigned_key VARCHAR(50),
+  assigned_to_email VARCHAR(255)
+);
+
+-- activity_log (optional)
+CREATE TABLE activity_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  action VARCHAR(100),
+  details TEXT,
+  created_at DATETIME
+);
+        </pre>
+      </li>
+      <li>Update backend (PHP/Node) to connect with credentials.</li>
+      <li>Replace simulation functions with actual DB queries.</li>
+      <li>Set up session authentication for admin (only you).</li>
+    </ol>
+    <p class="db-note">
+      <i class="fas fa-check-circle"></i> Use "spotifygold" as master password example.
+    </p>
+  </section>
+
+  <!-- Your JS -->
+  <script src="script.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>

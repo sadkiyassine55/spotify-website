@@ -1,0 +1,28 @@
+CREATE DATABASE IF NOT EXISTS producthub_db;
+USE producthub_db;
+
+-- Keys table
+CREATE TABLE IF NOT EXISTS keys (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  key_code VARCHAR(80) UNIQUE NOT NULL,
+  status ENUM('UNUSED','REDEEMED','REUSABLE') DEFAULT 'UNUSED',
+  bound_email VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  redeemed_at DATETIME NULL
+);
+
+-- Activity log
+CREATE TABLE IF NOT EXISTS activity_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  action VARCHAR(60) NOT NULL,
+  details TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Simple admin users (اختياري، للحد الأدنى)
+CREATE TABLE IF NOT EXISTS admin_users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(60) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
