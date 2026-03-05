@@ -139,3 +139,6 @@ app.get("/api/admin/metrics", adminAuth, async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
+app.get('/admin', (req, res) => {
+  res.sendFile(__dirname + '/admin.html');
+});
