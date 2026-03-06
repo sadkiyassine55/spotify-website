@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, "public")));
 function adminAuth(req, res, next) {
   const header = req.headers.authorization || "";
 
-  // يطلع popup login
+  // show popup login
   if (!header.startsWith("Basic ")) {
     res.set("WWW-Authenticate", 'Basic realm="Admin Panel"');
     return res.status(401).send("Authentication required");
@@ -38,7 +38,6 @@ function adminAuth(req, res, next) {
   const okUser = process.env.ADMIN_USER;
   const okPass = process.env.ADMIN_PASS;
 
-  // إذا ما حطّيتش env vars في Render
   if (!okUser || !okPass) {
     console.warn("⚠️ Missing ADMIN_USER or ADMIN_PASS env vars");
     return res.status(500).send("Server misconfigured");
@@ -61,7 +60,13 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "costumer.html"));
 });
 
+// 🚫 block direct access if admin.html is inside /public
+app.get("/admin.html", (req, res) => {
+  return res.status(404).send("Not found");
+});
+
 // admin page (protected)
+// ✅ option A: if admin.html is OUTSIDE public -> backend/admin.html
 app.get("/admin", adminAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
