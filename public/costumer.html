@@ -1,47 +1,40 @@
+<!-- public/costumer.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpotifyHub</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpotifyHub</title>
 
-<link rel="stylesheet" href="/style.css">
-
+  <!-- نفس style.css، أما باش نعملولو rules خاصة بالcustomer-page -->
+  <link rel="stylesheet" href="/style.css" />
 </head>
 
-<body>
+<body class="customer-page">
+  <div class="container">
+    <h1>Redeem your Key</h1>
 
-<div class="container">
+    <form id="redeemForm">
+      <input
+        type="text"
+        id="key"
+        placeholder="ProductHub-XXXX-XXXX"
+        required
+      />
 
-<h1>Redeem your Key</h1>
+      <input
+        type="email"
+        id="email"
+        placeholder="your@email.com"
+        required
+      />
 
-<form id="redeemForm">
+      <button type="submit">Redeem</button>
+    </form>
 
-<input
-type="text"
-id="key"
-placeholder="ProductHub-XXXX-XXXX"
-required
->
+    <p id="msg"></p>
+  </div>
 
-<input
-type="email"
-id="email"
-placeholder="your@email.com"
-required
->
-
-<button type="submit">
-Redeem
-</button>
-
-</form>
-
-<p id="msg"></p>
-
-</div>
-
-<script src="/costumer.js"></script>
-
+  <script src="/costumer.js"></script>
 </body>
 </html>
