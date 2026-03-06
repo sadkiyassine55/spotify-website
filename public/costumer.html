@@ -1,26 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redeem Key</title>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotifyHub</title>
+
+<link rel="stylesheet" href="/style.css">
+
 </head>
-<body class="p">
-  <div class="card">
-    <h2>Redeem your Key</h2>
 
-    <label>Key</label>
-    <input id="keyInput" placeholder="ProductHub-XXXX-XXXX" />
+<body>
 
-    <label>Email</label>
-    <input id="emailInput" type="email" placeholder="your@email.com" />
+<div class="container">
 
-    <button id="redeemBtn">Redeem</button>
+<h1>Redeem your Key</h1>
 
-    <p id="msg"></p>
-  </div>
+<form id="redeemForm">
 
-  <script src="./customer.js"></script>
+<input
+type="text"
+id="key"
+placeholder="ProductHub-XXXX-XXXX"
+required
+>
+
+<input
+type="email"
+id="email"
+placeholder="your@email.com"
+required
+>
+
+<button type="submit">
+Redeem
+</button>
+
+</form>
+
+<p id="msg"></p>
+
+</div>
+
+<script src="/costumer.js"></script>
+
 </body>
 </html>
