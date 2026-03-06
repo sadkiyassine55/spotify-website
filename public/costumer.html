@@ -1,35 +1,25 @@
-<!-- public/costumer.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SpotifyHub</title>
-
-  <!-- نفس style.css، أما باش نعملولو rules خاصة بالcustomer-page -->
   <link rel="stylesheet" href="/style.css" />
 </head>
-
 <body class="customer-page">
-  <div class="container">
-    <h1>Redeem your Key</h1>
+
+  <div class="customer-card">
+    <h1>Spotify Gold</h1>
+    <p class="subtitle">Premium Upgrade</p>
 
     <form id="redeemForm">
-      <input
-        type="text"
-        id="key"
-        placeholder="ProductHub-XXXX-XXXX"
-        required
-      />
+      <label>Upgrade Key</label>
+      <input type="text" id="key" placeholder="ProductHub-XXXX-XXXX" required />
 
-      <input
-        type="email"
-        id="email"
-        placeholder="your@email.com"
-        required
-      />
+      <label>Email</label>
+      <input type="email" id="email" placeholder="your@email.com" required />
 
-      <button type="submit">Redeem</button>
+      <button type="submit">Upgrade Now</button>
     </form>
 
     <p id="msg"></p>

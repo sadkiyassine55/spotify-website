@@ -1,13 +1,9 @@
-// public/costumer.js
-
-const form = document.getElementById("redeemForm");
 const keyInput = document.getElementById("key");
 const emailInput = document.getElementById("email");
 const msg = document.getElementById("msg");
 
-form.addEventListener("submit", async (e) => {
+document.getElementById("redeemForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-
   msg.textContent = "Loading...";
 
   const key = keyInput.value.trim();
@@ -20,9 +16,9 @@ form.addEventListener("submit", async (e) => {
       body: JSON.stringify({ key, email })
     });
 
-    const data = await r.json().catch(() => ({}));
-    msg.textContent = r.ok && data.ok ? "✅ Redeem successful" : `❌ ${data.msg || "Error"}`;
-  } catch (err) {
+    const data = await r.json();
+    msg.textContent = data.ok ? "✅ Redeem successful" : `❌ ${data.msg}`;
+  } catch {
     msg.textContent = "❌ Server not reachable";
   }
 });
