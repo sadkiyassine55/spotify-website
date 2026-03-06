@@ -19,26 +19,35 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
-// serve frontend from /public
+// serve static files from /public
 app.use(express.static(path.join(__dirname, "public")));
-
-// homepage -> customer page
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "costumer.html"));
-});
 
 // --------- helper: basic auth (simple) ----------
 function adminAuth(req, res, next) {
   const header = req.headers.authorization || "";
+
+  // يطلع popup login
   if (!header.startsWith("Basic ")) {
-    return res.status(401).json({ ok: false, msg: "No auth" });
+    res.set("WWW-Authenticate", 'Basic realm="Admin Panel"');
+    return res.status(401).send("Authentication required");
   }
 
-  const decoded = Buffer.from(header.replace("Basic ", ""), "base64").toString("utf8");
+  const decoded = Buffer.from(header.slice(6), "base64").toString("utf8");
   const [user, pass] = decoded.split(":");
 
-  if (user === process.env.ADMIN_USER && pass === process.env.ADMIN_PASS) return next();
-  return res.status(403).json({ ok: false, msg: "Forbidden" });
+  const okUser = process.env.ADMIN_USER;
+  const okPass = process.env.ADMIN_PASS;
+
+  // إذا ما حطّيتش env vars في Render
+  if (!okUser || !okPass) {
+    console.warn("⚠️ Missing ADMIN_USER or ADMIN_PASS env vars");
+    return res.status(500).send("Server misconfigured");
+  }
+
+  if (user === okUser && pass === okPass) return next();
+
+  res.set("WWW-Authenticate", 'Basic realm="Admin Panel"');
+  return res.status(401).send("Invalid credentials");
 }
 
 // --------- helper: create key code ----------
@@ -47,11 +56,20 @@ function makeKey(prefix = "ProductHub") {
   return `${prefix}-${part()}${part()}-${part()}${part()}`;
 }
 
+// homepage -> customer page
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "costumer.html"));
+});
+
+// admin page (protected)
+app.get("/admin", adminAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
 // --------- CUSTOMER: redeem ----------
 app.post("/api/redeem", async (req, res) => {
   try {
     const { key, email } = req.body;
-
     if (!key || !email) return res.status(400).json({ ok: false, msg: "Missing key/email" });
 
     const [rows] = await db.query("SELECT * FROM keys WHERE key_code=? LIMIT 1", [key.trim()]);
@@ -138,7 +156,5 @@ app.get("/api/admin/metrics", adminAuth, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
-app.get('/admin', (req, res) => {
-  res.sendFile(__dirname + '/admin.html');
-});
+// listen (last)
+app.listen(PORT, () => console.log(`API running on port ${PORT}`));
