@@ -19,14 +19,10 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
-// serve static files from /public
-app.use(express.static(path.join(__dirname, "public")));
-
-// --------- helper: basic auth (simple) ----------
+// --------- helper: basic auth ----------
 function adminAuth(req, res, next) {
   const header = req.headers.authorization || "";
 
-  // show popup login
   if (!header.startsWith("Basic ")) {
     res.set("WWW-Authenticate", 'Basic realm="Admin Panel"');
     return res.status(401).send("Authentication required");
@@ -55,20 +51,16 @@ function makeKey(prefix = "ProductHub") {
   return `${prefix}-${part()}${part()}-${part()}${part()}`;
 }
 
+// ✅ PROTECT admin.html (باش ما يفتحهاش بلا login)
+app.get("/admin", adminAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+// ✅ serve static files from /public (CSS/JS/Images)
+app.use(express.static(path.join(__dirname, "public")));
+
 // homepage -> customer page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "costumer.html"));
-});
-
-// 🚫 block direct access if admin.html is inside /public
-app.get("/admin.html", (req, res) => {
-  return res.status(404).send("Not found");
-});
-
-// admin page (protected)
-// ✅ option A: if admin.html is OUTSIDE public -> backend/admin.html
-app.get("/admin", adminAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
 });
 
 // --------- CUSTOMER: redeem ----------
