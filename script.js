@@ -1,4 +1,3 @@
-// Helpers
 const mainContent = document.getElementById("mainContent");
 
 function setActive(linkEl) {
@@ -16,6 +15,7 @@ function showSection(section) {
     case "generate":
       mainContent.innerHTML = getGenerateHTML();
       wireGenerateEvents();
+      wireToggleButtons();
       break;
     case "stock":
       mainContent.innerHTML = getStockHTML();
@@ -32,7 +32,6 @@ function showSection(section) {
   }
 }
 
-// Nav wiring
 function wireNav() {
   document.querySelectorAll(".nav .nav-link").forEach((link) => {
     link.addEventListener("click", (e) => {
@@ -47,203 +46,366 @@ function wireNav() {
 
 function getDashboardHTML() {
   return `
-    <div class="page-header">
-      <h1>Dashboard</h1>
-      <div class="header-actions"><i class="fas fa-calendar-alt"></i> 3/2/2026</div>
-    </div>
+    <section class="page-section">
+      <div class="page-head-row">
+        <h1 class="page-title">Dashboard</h1>
+        <button class="btn btn-ghost btn-sm">
+          <i class="fas fa-calendar-alt"></i> 3/2/2026
+        </button>
+      </div>
 
-    <div class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-title"><i class="fas fa-key"></i> Total Keys</div>
-        <div class="metric-number">11</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title"><i class="fas fa-check-circle" style="color:#1db954;"></i> Active Keys</div>
-        <div class="metric-number">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title"><i class="fas fa-box"></i> Stock Available</div>
-        <div class="metric-number">11</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title"><i class="fas fa-layer-group"></i> Unused Keys</div>
-        <div class="metric-number">11</div>
-      </div>
-    </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Total Keys</p>
+            <h2 class="stat-value">11</h2>
+          </div>
+          <div class="stat-icon blue"><i class="fas fa-lock"></i></div>
+        </div>
 
-    <div class="recent-activity">
-      <h3><i class="fas fa-history"></i> Recent Activity</h3>
-      <table>
-        <tr><th>Action</th><th>Key</th><th>Email</th><th>Time</th></tr>
-        <tr><td>Keys Generated</td><td>1 keys generated</td><td>-</td><td>3/2/2026, 12:45:04 AM</td></tr>
-        <tr><td>Keys Generated</td><td>10 keys generated</td><td>-</td><td>3/2/2026, 12:36:47 AM</td></tr>
-      </table>
-    </div>
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Active Keys</p>
+            <h2 class="stat-value">0</h2>
+          </div>
+          <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        </div>
 
-    <div style="display:flex; justify-content:space-between; color:#99b2e6; margin-top:2rem;">
-      <span><i class="fas fa-cog"></i> Settings</span>
-      <span><i class="fas fa-sign-out-alt"></i> Logout</span>
-    </div>
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Stock Available</p>
+            <h2 class="stat-value">11</h2>
+          </div>
+          <div class="stat-icon purple"><i class="fas fa-box"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Unused Keys</p>
+            <h2 class="stat-value">11</h2>
+          </div>
+          <div class="stat-icon orange"><i class="fas fa-key"></i></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Recent Activity</h3>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Key</th>
+                <th>Email</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Keys Generated</td>
+                <td>1 keys generated</td>
+                <td>-</td>
+                <td>3/2/2026 12:45:04 AM</td>
+              </tr>
+              <tr>
+                <td>Keys Generated</td>
+                <td>10 keys generated</td>
+                <td>-</td>
+                <td>3/2/2026 12:36:47 AM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   `;
 }
 
 function getGenerateHTML() {
   return `
-    <div class="page-header"><h1>Generate Keys</h1></div>
+    <section class="page-section">
+      <h1 class="page-title">Generate Keys</h1>
 
-    <div class="gen-panel">
-      <h3 style="color:white; margin-bottom:1.8rem;">
-        <i class="fas fa-plus-circle" style="color:#1db954;"></i> New Key Batch
-      </h3>
-
-      <div class="gen-options">
-        <div class="gen-left">
-          <div class="field">
-            <label>Quantity</label>
-            <input type="number" value="10" id="keyQty" />
+      <div class="two-col-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>New Key Batch</h3>
           </div>
 
-          <div class="field">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" value="10" id="keyQty" class="input" min="1" />
+          </div>
+
+          <div class="form-group">
             <label>Reusable</label>
-            <div class="radio-group">
-              <label><input type="radio" name="reusable" value="no" checked /> No</label>
-              <label><input type="radio" name="reusable" value="yes" /> Yes</label>
+            <div class="toggle-group" id="reusableGroup">
+              <button type="button" class="toggle-btn active" data-value="no">No</button>
+              <button type="button" class="toggle-btn" data-value="yes">Yes</button>
             </div>
           </div>
 
-          <div class="field">
+          <div class="form-group">
             <label>Expiry Date (Optional)</label>
-            <input type="text" placeholder="mm/dd/yyyy --:-- --" />
+            <input type="datetime-local" class="input" />
           </div>
 
-          <button class="btn-primary" id="btnGenerate">
-            <i class="fas fa-cog"></i> Generate
+          <button class="btn btn-primary btn-full" id="btnGenerate">
+            Generate 10 Keys
           </button>
         </div>
 
-        <div class="gen-right">
-          <h4 style="color:white; margin-bottom:1rem;">Generated Keys</h4>
-          <p style="color:#a0bcf0;">Generated keys will appear here</p>
-          <div id="generatedKeysPreview" style="background:#0d1a2a; border-radius:1rem; padding:1rem; margin-top:1rem; color:#b0d0ff;"></div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Generated Keys</h3>
+          </div>
+
+          <div id="generatedKeysPreview" class="empty-preview">
+            Generated keys will appear here
+          </div>
         </div>
       </div>
-    </div>
-
-    <div style="color:#99b2e6;">
-      <i class="fas fa-cog"></i> Settings
-      <i class="fas fa-sign-out-alt" style="margin-left:2rem;"></i> Logout
-    </div>
+    </section>
   `;
 }
 
 function getStockHTML() {
   return `
-    <div class="page-header"><h1>Manage Stock</h1></div>
+    <section class="page-section">
+      <div class="page-head-row">
+        <h1 class="page-title">Manage Stock</h1>
+        <button class="btn btn-ghost"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
 
-    <div class="stock-stats">
-      <div class="stat-item"><h4>Total Keys</h4><span class="stat-number">11</span></div>
-      <div class="stat-item"><h4>Available Keys</h4><span class="stat-number">11</span></div>
-      <div class="stat-item"><h4>Available Invite Links</h4><span class="stat-number">0</span></div>
-      <div class="stat-item"><h4>Assigned Links</h4><span class="stat-number">0</span></div>
-    </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Total Keys</p>
+            <h2 class="stat-value">11</h2>
+          </div>
+          <div class="stat-icon blue"><i class="fas fa-lock"></i></div>
+        </div>
 
-    <div style="background:#111d33; border-radius:2rem; padding:2rem; margin-bottom:2rem;">
-      <h4 style="color:white;">Stock Usage</h4>
-      <div class="usage-bar"><div class="usage-fill" style="width:0%;"></div></div>
-      <p style="color:#a7c2ff;">0% of keys are in use.</p>
-    </div>
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Available Keys</p>
+            <h2 class="stat-value">11</h2>
+          </div>
+          <div class="stat-icon green"><i class="fas fa-key"></i></div>
+        </div>
 
-    <div class="invite-section">
-      <h4 style="color:white;"><i class="fas fa-link"></i> Add Spotify Invite Links</h4>
-      <p style="color:#b0c6f0;">
-        Paste your Spotify Family invite links below (one per line). When a client redeems a key, they will automatically receive an invite link.
-      </p>
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Available Invite Links</p>
+            <h2 class="stat-value">0</h2>
+          </div>
+          <div class="stat-icon purple"><i class="fas fa-link"></i></div>
+        </div>
 
-      <textarea class="invite-textarea" rows="4" id="inviteLinks">
-https://www.spotify.com/family/join/invite/xxxxx
-https://www.spotify.com/family/join/invite/yyyyy
-https://www.spotify.com/family/join/invite/zzzz
-      </textarea>
+        <div class="stat-card">
+          <div>
+            <p class="stat-label">Assigned Links</p>
+            <h2 class="stat-value">0</h2>
+          </div>
+          <div class="stat-icon orange"><i class="fas fa-circle"></i></div>
+        </div>
+      </div>
 
-      <button class="btn-primary" style="margin:1rem 0;" id="btnAddLinks">
-        <i class="fas fa-plus"></i> Add Invite Links
-      </button>
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Stock Usage</h3>
+        </div>
 
-      <h4 style="color:white; margin-top:2rem;">Invite Links (5) — from screenshot 85</h4>
-      <table class="link-table">
-        <tr><th>Link</th><th>Status</th><th>Assigned To</th><th>Key</th><th>Actions</th></tr>
-        <tr><td>https://www.spotify.com/tn-fr/family/join/invite/Zxbz9247...</td><td><span class="badge" style="background:#1d4e2d;">AVAILABLE</span></td><td>-</td><td>-</td><td>-</td></tr>
-        <tr><td>https://www.spotify.com/tn-fr/family/join/invite/Zxbz9247...</td><td><span class="badge" style="background:#1d4e2d;">AVAILABLE</span></td><td>-</td><td>-</td><td>-</td></tr>
-        <tr><td>https://www.spotify.com/tn-fr/family/join/invite/Zxbz9247...</td><td><span class="badge" style="background:#1d4e2d;">AVAILABLE</span></td><td>-</td><td>-</td><td>-</td></tr>
-      </table>
-    </div>
+        <div class="usage-bar">
+          <div class="usage-fill" style="width:0%;"></div>
+        </div>
 
-    <div style="margin-top:2rem; color:#99b2e6;">Settings · Logout · SWDY 2.12.1</div>
+        <p class="muted">0% of keys are in use.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Add Spotify Invite Links</h3>
+        </div>
+
+        <p class="muted">
+          Paste your Spotify Family invite links below (one per line). When a client redeems a key, they will automatically receive an invite link.
+        </p>
+
+        <textarea class="input textarea" rows="5" id="inviteLinks" placeholder="https://www.spotify.com/family/join/invite/xxxx"></textarea>
+
+        <button class="btn btn-primary" id="btnAddLinks">
+          <i class="fas fa-plus"></i> Add Invite Links
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Invite Links (5)</h3>
+          <button class="btn btn-ghost btn-sm">Hide</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Link</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Key</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${inviteRows()}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   `;
 }
 
 function getUnbindHTML() {
   return `
-    <div class="page-header"><h1>Unbind Requests</h1></div>
+    <section class="page-section">
+      <h1 class="page-title">Unbind Requests</h1>
 
-    <div class="empty-state">
-      <i class="fas fa-inbox fa-3x" style="margin-bottom:1rem;"></i>
-      <h3>All Requests</h3>
-      <table style="margin-top:1rem;">
-        <tr><th>Key</th><th>Email</th><th>Reason</th><th>Status</th><th>Date</th><th>Actions</th></tr>
-        <tr><td colspan="6" style="text-align:center;">No unbind requests</td></tr>
-      </table>
-    </div>
+      <div class="panel">
+        <div class="panel-header">
+          <button class="btn btn-ghost btn-sm">All Requests</button>
+        </div>
 
-    <div style="margin-top:2rem; color:#99b2e6;">Settings · Logout</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Email</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" class="centered-cell">No unbind requests</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   `;
 }
 
 function getAllKeysHTML() {
   return `
-    <div class="page-header"><h1>All Keys</h1></div>
-
-    <div style="background:#111d33; border-radius:2rem; padding:1.8rem;">
-      <table>
-        <tr>
-          <th>Key</th><th>Status</th><th>Bound Email</th><th>Invite Link</th>
-          <th>Created</th><th>Redeemed</th><th>Actions</th>
-        </tr>
-        ${keyRows()}
-      </table>
-
-      <div style="margin-top:2rem; display:flex; justify-content:space-between;">
-        <span><i class="fas fa-download"></i> Export CSV</span>
-        <span><i class="fas fa-cog"></i> Settings <i class="fas fa-sign-out-alt" style="margin-left:1.5rem;"></i> Logout</span>
+    <section class="page-section">
+      <div class="page-head-row">
+        <h1 class="page-title">All Keys</h1>
+        <button class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Export CSV</button>
       </div>
-    </div>
+
+      <div class="panel">
+        <div class="table-toolbar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search by key or email" />
+          </div>
+
+          <select class="input filter-select">
+            <option>All Status</option>
+            <option>Unused</option>
+            <option>Binding</option>
+            <option>Reusable</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Status</th>
+                <th>Bound Email</th>
+                <th>Invite Link</th>
+                <th>Created</th>
+                <th>Redeemed</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${keyRows()}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   `;
 }
 
-function keyRows() {
-  const keys = [
-    "SpotifyHub-9E9XA16X","SpotifyHub-DLH1D75E","SpotifyHub-9QCV-92JE","SpotifyHub-IB3A-I03B",
-    "SpotifyHub-7W2R-IR3V","SpotifyHub-T3YE-QY25","SpotifyHub-U8JB-YAK8","SpotifyHub-WXHU-BF47",
-    "SpotifyHub-HSXW-9KV1","SpotifyHub-AB2A-4BQA"
-  ];
-
-  return keys.map((k) => `
+function inviteRows() {
+  const links = new Array(5).fill("https://www.spotify.com/tn-fr/family/join/invite/Zxbz924720B00C/");
+  return links.map((link) => `
     <tr>
-      <td>${k}</td>
-      <td><span class="badge unused-badge">UNUSED</span></td>
+      <td class="link-cell">${link}</td>
+      <td><span class="badge badge-available">AVAILABLE</span></td>
       <td>-</td>
       <td>-</td>
-      <td>3/2/2026</td>
-      <td>-</td>
-      <td><i class="fas fa-lock lock-icon"></i></td>
+      <td><i class="fas fa-trash action-icon danger"></i></td>
     </tr>
   `).join("");
 }
 
-/* ---------------- Page Events ---------------- */
+function keyRows() {
+  const keys = [
+    "SpotifyHub-69GX-A16X",
+    "SpotifyHub-DLH1-D75E",
+    "SpotifyHub-9QCV-92JE",
+    "SpotifyHub-IB3A-I03B",
+    "SpotifyHub-7W2R-IR3V",
+    "SpotifyHub-T3YE-QY25",
+    "SpotifyHub-U8JB-YAK8",
+    "SpotifyHub-WXHU-BF47",
+    "SpotifyHub-V8VR-T08E",
+    "SpotifyHub-HSXW-9KV1",
+    "SpotifyHub-AB2A-4BQA"
+  ];
+
+  return keys.map((k) => `
+    <tr>
+      <td class="key-text">${k}</td>
+      <td><span class="badge badge-unused">UNUSED</span></td>
+      <td>-</td>
+      <td>-</td>
+      <td>3/2/2026</td>
+      <td>-</td>
+      <td><i class="fas fa-trash action-icon danger"></i></td>
+    </tr>
+  `).join("");
+}
+
+/* ---------------- Events ---------------- */
 
 function wireGenerateEvents() {
   const btn = document.getElementById("btnGenerate");
+  const qtyInput = document.getElementById("keyQty");
+
+  if (qtyInput && btn) {
+    const syncBtnText = () => {
+      const qty = Number(qtyInput.value || 10);
+      btn.textContent = `Generate ${qty} Keys`;
+    };
+
+    qtyInput.addEventListener("input", syncBtnText);
+    syncBtnText();
+  }
+
   if (!btn) return;
 
   btn.addEventListener("click", () => {
@@ -251,13 +413,26 @@ function wireGenerateEvents() {
     const preview = document.getElementById("generatedKeysPreview");
 
     if (preview) {
-      let html = "<strong>new keys (demo):</strong><br>";
-      for (let i = 0; i < Math.min(5, qty); i++) html += `SpotifyHub-XXXX${i}<br>`;
-      if (qty > 5) html += "...";
-      preview.innerHTML = html;
+      let html = "";
+      for (let i = 1; i <= Math.min(qty, 10); i++) {
+        html += `<div class="generated-key-item">SpotifyHub-${randomPart()}-${randomPart()}</div>`;
+      }
+      preview.innerHTML = html || "No keys generated";
     }
 
-    alert(`Simulated generation of ${qty} keys. In production: insert into DB.`);
+    alert(`Simulated generation of ${qty} keys. Later this should connect to DB.`);
+  });
+}
+
+function wireToggleButtons() {
+  const group = document.getElementById("reusableGroup");
+  if (!group) return;
+
+  group.querySelectorAll(".toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      group.querySelectorAll(".toggle-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
   });
 }
 
@@ -266,9 +441,12 @@ function wireStockEvents() {
   if (!btnAdd) return;
 
   btnAdd.addEventListener("click", () => {
-    // In real app: send invite links to backend / DB
     alert("Links would be added to DB");
   });
+}
+
+function randomPart() {
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
 /* ---------------- Boot ---------------- */
