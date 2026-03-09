@@ -14,10 +14,15 @@ const PORT = process.env.PORT || 3000;
 // __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const publicDir = path.join(__dirname, "public");
 
 // middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// serve static files from /public
+app.use(express.static(publicDir));
 
 // --------- helper: basic auth ----------
 function adminAuth(req, res, next) {
@@ -35,11 +40,13 @@ function adminAuth(req, res, next) {
   const okPass = process.env.ADMIN_PASS;
 
   if (!okUser || !okPass) {
-    console.warn("⚠️ Missing ADMIN_USER or ADMIN_PASS env vars");
+    console.warn("Missing ADMIN_USER or ADMIN_PASS env vars");
     return res.status(500).send("Server misconfigured");
   }
 
-  if (user === okUser && pass === okPass) return next();
+  if (user === okUser && pass === okPass) {
+    return next();
+  }
 
   res.set("WWW-Authenticate", 'Basic realm="Admin Panel"');
   return res.status(401).send("Invalid credentials");
@@ -51,45 +58,62 @@ function makeKey(prefix = "ProductHub") {
   return `${prefix}-${part()}${part()}-${part()}${part()}`;
 }
 
-// ✅ PROTECT admin.html (باش ما يفتحهاش بلا login)
-app.get("/admin", adminAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-// ✅ serve static files from /public (CSS/JS/Images)
-app.use(express.static(path.join(__dirname, "public")));
-
 // homepage -> customer page
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "costumer.html"));
+  res.sendFile(path.join(publicDir, "costumer.html"));
+});
+
+// admin page protected
+app.get("/admin", adminAuth, (req, res) => {
+  res.sendFile(path.join(publicDir, "admin.html"));
+});
+
+// optional: support /admin.html too
+app.get("/admin.html", adminAuth, (req, res) => {
+  res.sendFile(path.join(publicDir, "admin.html"));
 });
 
 // --------- CUSTOMER: redeem ----------
 app.post("/api/redeem", async (req, res) => {
   try {
     const { key, email } = req.body;
-    if (!key || !email) return res.status(400).json({ ok: false, msg: "Missing key/email" });
 
-    const [rows] = await db.query("SELECT * FROM keys WHERE key_code=? LIMIT 1", [key.trim()]);
-    if (!rows.length) return res.status(404).json({ ok: false, msg: "Key not found" });
+    if (!key || !email) {
+      return res.status(400).json({ ok: false, msg: "Missing key/email" });
+    }
+
+    const [rows] = await db.query(
+      "SELECT * FROM keys WHERE key_code = ? LIMIT 1",
+      [key.trim()]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ ok: false, msg: "Key not found" });
+    }
 
     const k = rows[0];
+
     if (k.status !== "UNUSED" && k.status !== "REUSABLE") {
       return res.status(409).json({ ok: false, msg: "Key already redeemed" });
     }
 
     await db.query(
-      "UPDATE keys SET status=IF(status='REUSABLE','REUSABLE','REDEEMED'), bound_email=?, redeemed_at=NOW() WHERE key_code=?",
+      `UPDATE keys
+       SET status = IF(status='REUSABLE','REUSABLE','REDEEMED'),
+           bound_email = ?,
+           redeemed_at = NOW()
+       WHERE key_code = ?`,
       [email.trim(), key.trim()]
     );
 
-    await db.query("INSERT INTO activity_log(action, details) VALUES(?, ?)", [
-      "KEY_REDEEM",
-      `Key ${key.trim()} redeemed by ${email.trim()}`
-    ]);
+    await db.query(
+      "INSERT INTO activity_log(action, details) VALUES(?, ?)",
+      ["KEY_REDEEM", `Key ${key.trim()} redeemed by ${email.trim()}`]
+    );
 
     res.json({ ok: true, msg: "Redeem successful" });
   } catch (e) {
-    console.error(e);
+    console.error("Redeem error:", e);
     res.status(500).json({ ok: false, msg: "Server error" });
   }
 });
@@ -98,26 +122,28 @@ app.post("/api/redeem", async (req, res) => {
 app.post("/api/admin/keys/generate", adminAuth, async (req, res) => {
   try {
     const qty = Math.max(1, Math.min(500, Number(req.body.qty || 10)));
-    const reusable = req.body.reusable === true;
+    const reusable = req.body.reusable === true || req.body.reusable === "true";
 
     const keys = [];
+
     for (let i = 0; i < qty; i++) {
       const code = makeKey("ProductHub");
       keys.push(code);
-      await db.query("INSERT INTO keys(key_code, status) VALUES(?, ?)", [
-        code,
-        reusable ? "REUSABLE" : "UNUSED"
-      ]);
+
+      await db.query(
+        "INSERT INTO keys(key_code, status) VALUES(?, ?)",
+        [code, reusable ? "REUSABLE" : "UNUSED"]
+      );
     }
 
-    await db.query("INSERT INTO activity_log(action, details) VALUES(?, ?)", [
-      "KEYS_GENERATED",
-      `${qty} keys generated (reusable=${reusable})`
-    ]);
+    await db.query(
+      "INSERT INTO activity_log(action, details) VALUES(?, ?)",
+      ["KEYS_GENERATED", `${qty} keys generated (reusable=${reusable})`]
+    );
 
     res.json({ ok: true, keys });
   } catch (e) {
-    console.error(e);
+    console.error("Generate keys error:", e);
     res.status(500).json({ ok: false, msg: "Server error" });
   }
 });
@@ -126,11 +152,15 @@ app.post("/api/admin/keys/generate", adminAuth, async (req, res) => {
 app.get("/api/admin/keys", adminAuth, async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT key_code, status, bound_email, created_at, redeemed_at FROM keys ORDER BY id DESC LIMIT 500"
+      `SELECT key_code, status, bound_email, invite_link, created_at, redeemed_at
+       FROM keys
+       ORDER BY id DESC
+       LIMIT 500`
     );
+
     res.json({ ok: true, rows });
   } catch (e) {
-    console.error(e);
+    console.error("List keys error:", e);
     res.status(500).json({ ok: false, msg: "Server error" });
   }
 });
@@ -138,20 +168,37 @@ app.get("/api/admin/keys", adminAuth, async (req, res) => {
 // --------- ADMIN: dashboard metrics ----------
 app.get("/api/admin/metrics", adminAuth, async (req, res) => {
   try {
-    const [[total]] = await db.query("SELECT COUNT(*) as n FROM keys");
-    const [[unused]] = await db.query("SELECT COUNT(*) as n FROM keys WHERE status='UNUSED'");
-    const [[redeemed]] = await db.query("SELECT COUNT(*) as n FROM keys WHERE status='REDEEMED'");
-    const [[reusable]] = await db.query("SELECT COUNT(*) as n FROM keys WHERE status='REUSABLE'");
+    const [[total]] = await db.query("SELECT COUNT(*) AS n FROM keys");
+    const [[unused]] = await db.query("SELECT COUNT(*) AS n FROM keys WHERE status='UNUSED'");
+    const [[redeemed]] = await db.query("SELECT COUNT(*) AS n FROM keys WHERE status='REDEEMED'");
+    const [[reusable]] = await db.query("SELECT COUNT(*) AS n FROM keys WHERE status='REUSABLE'");
 
     res.json({
       ok: true,
-      metrics: { total: total.n, unused: unused.n, redeemed: redeemed.n, reusable: reusable.n }
+      metrics: {
+        total: total.n,
+        unused: unused.n,
+        redeemed: redeemed.n,
+        reusable: reusable.n
+      }
     });
   } catch (e) {
-    console.error(e);
+    console.error("Metrics error:", e);
     res.status(500).json({ ok: false, msg: "Server error" });
   }
 });
 
+// --------- health check for Render ----------
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+// --------- fallback 404 ----------
+app.use((req, res) => {
+  res.status(404).send("Not Found");
+});
+
 // listen (last)
-app.listen(PORT, () => console.log(`API running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`API running on port ${PORT}`);
+});
